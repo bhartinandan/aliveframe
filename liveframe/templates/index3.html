@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AliveFrame - AR Experience</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #001f3f, #000c1a);
+            color: white;
+            text-align: center;
+            overflow-x: hidden;
+        }
+        .container {
+            padding: 20px;
+        }
+
+        /* Logo */
+        .logo {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 20px 0;
+            cursor: pointer;
+            opacity: 0;
+            animation: fadeInScale 1.5s ease-in-out forwards;
+        }
+
+        /* Intro */
+        .intro {
+            font-size: 24px;
+            margin: 20px auto;
+            max-width: 600px;
+            opacity: 0;
+            animation: slideUp 1.5s ease-in-out forwards;
+        }
+
+        /* Buttons */
+        .buttons {
+            margin-top: 20px;
+            opacity: 0;
+            animation: fadeIn 2s ease-in-out forwards;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            margin: 10px;
+            font-size: 18px;
+            background: navy;
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Video Container */
+        .video-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 40px;
+            width: 100%;
+            
+        }
+
+        .video-card {
+            background: #002244;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            animation: fadeIn 1.5s ease-in-out forwards 1.5s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-card video {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            aspect-ratio: 9 / 16;
+            object-fit: cover;
+            box-shadow: 0 4px 10px rgba(206, 209, 239, 0.5);
+            transition: transform 0.2s ease-in-out;
+        }
+
+        /* Footer */
+        .footer {
+            background: #000c1a;
+            padding: 20px;
+            margin-top: 40px;
+            opacity: 0;
+            animation: fadeIn 2s ease-in-out forwards 2s;
+        }
+
+        /* Animations */
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo" onclick="window.location.href ='/'">AliveFrame</div>
+
+        <div class="intro">Give Life to your frames with "AliveFrame"</div>
+        <div class="intro">Experience Augmented Reality like never before. Bring your world to life!</div>
+        <div class="buttons">
+            <button class="btn" onclick="window.location.href ='/signin'">Get Started</button>
+            <button class="btn" onclick="window.location.href ='/contactus'">Contact Us</button>
+        </div>
+
+        <h2>Sample Video</h2>
+        <div class="video-container">
+            <div class="video-card">
+                <video id="zoomable-video" src="/static/vid2.mp4" autoplay loop muted playsinline></video>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>
+            <a onclick="window.location.href ='/aboutus'" style="color: white; text-decoration: none; margin: 0 10px;">About Us</a> |
+            <a onclick="window.location.href ='/tnc'" style="color: white; text-decoration: none; margin: 0 10px;">Terms & Conditions</a> |
+            <a onclick="window.location.href ='/contactus'" style="color: white; text-decoration: none; margin: 0 10px;">Contact</a>
+        </p>
+    </div>
+
+    <script>
+        let video = document.getElementById("zoomable-video");
+        let scale = 1, lastDistance = 0;
+
+        function getDistance(touches) {
+            let dx = touches[0].clientX - touches[1].clientX;
+            let dy = touches[0].clientY - touches[1].clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        // Handle pinch-to-zoom
+        video.addEventListener("touchstart", (e) => {
+            if (e.touches.length === 2) {
+                lastDistance = getDistance(e.touches);
+            }
+        });
+
+        video.addEventListener("touchmove", (e) => {
+            if (e.touches.length === 2) {
+                let newDistance = getDistance(e.touches);
+                let zoomFactor = newDistance / lastDistance;
+                scale = Math.min(Math.max(scale * zoomFactor, 1), 3); // Limits zoom 1x - 3x
+                video.style.transform = `scale(${scale})`;
+                lastDistance = newDistance;
+                e.preventDefault();
+            }
+        });
+
+        // Reset zoom on double-tap
+        let lastTap = 0;
+        video.addEventListener("touchend", (e) => {
+            let currentTime = new Date().getTime();
+            if (currentTime - lastTap < 300) {
+                scale = 1;
+                video.style.transform = "scale(1)";
+            }
+            lastTap = currentTime;
+        });
+
+        // Zoom with scroll (desktop)
+        video.addEventListener("wheel", (e) => {
+            e.preventDefault();
+            let zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+            scale = Math.min(Math.max(scale * zoomFactor, 1), 3);
+            video.style.transform = `scale(${scale})`;
+        });
+    </script>
+</body>
+</html>

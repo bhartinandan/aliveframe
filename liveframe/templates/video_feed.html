@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AliveFrame</title>
+    <script>
+        const socket = new WebSocket('ws://' + window.location.host + '/ws/video_feed/');
+
+socket.onopen = () => {
+    console.log("WebSocket connected");
+};
+
+socket.onclose = (event) => {
+    console.log(`WebSocket closed: ${event.code}, ${event.reason}`);
+};
+
+socket.onerror = (error) => {
+    console.error("WebSocket error:", error);
+};
+
+socket.onmessage = (event) => {
+    console.log("Message received:", event.data);
+};
+
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            const img = document.getElementById('video_frame');
+            img.src = 'data:image/jpeg;base64,' + data.frame;
+        };
+
+        function sendFrame() {
+            const video = document.getElementById('video');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const frameData = canvas.toDataURL('image/jpeg').split(',')[1];
+            socket.send(JSON.stringify({ frame: frameData }));
+        }
+
+        function startVideo() {
+            const video = document.getElementById('video');
+            navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+                video.srcObject = stream;
+                video.play();
+                setInterval(sendFrame, 100);
+            });
+        }
+    </script>
+</head>
+<body onload="startVideo()">
+    <h1>Live Video Feed</h1>
+    <video id="video" style="display:none;"></video>
+    <img id="video_frame" alt="Video Feed" />
+</body>
+</html>

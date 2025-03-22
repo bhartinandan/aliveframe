@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AliveFrame - About Us</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #001f3f, #000c1a);
+            color: white;
+            text-align: center;
+            overflow-x: hidden;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        /* Logo */
+        .logo {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 20px 0;
+            opacity: 0;
+            animation: fadeInScale 1.5s ease-in-out forwards;
+        }
+
+        /* About Section */
+        .about-container {
+            max-width: 700px;
+            margin: 30px auto;
+            background: #002244;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            animation: fadeIn 1.5s ease-in-out forwards 1s;
+            text-align: center;
+        }
+
+        .about-container h2 {
+            margin-bottom: 15px;
+        }
+
+        .about-text {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #c0dfff;
+            margin-bottom: 20px;
+        }
+
+        /* Team Section */
+        .team-container {
+            max-width: 800px;
+            margin: 40px auto;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .team-card {
+            background: #003366;
+            padding: 20px;
+            border-radius: 10px;
+            width: 250px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInSlideUp 1s ease-in-out forwards;
+        }
+
+        .team-card:nth-child(1) { animation-delay: 0.5s; }
+        .team-card:nth-child(2) { animation-delay: 0.8s; }
+        .team-card:nth-child(3) { animation-delay: 1.1s; }
+
+        .team-card img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+
+        .team-card h3 {
+            margin: 10px 0 5px;
+            font-size: 20px;
+        }
+
+        .team-card p {
+            font-size: 16px;
+            color: #c0dfff;
+        }
+
+        /* Footer */
+        .footer {
+            background: #000c1a;
+            padding: 20px;
+            margin-top: 40px;
+            opacity: 0;
+            animation: fadeIn 2s ease-in-out forwards 1.5s;
+        }
+
+        /* Animations */
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo" onclick="window.location.href ='/'">AliveFrame</div>
+
+        <!-- About Us Section -->
+        <div class="about-container">
+            <h2>About Us</h2>
+            <p class="about-text">
+                Welcome to <b>AliveFrame</b> – where Augmented Reality brings your world to life! 
+                Our mission is to transform static images into immersive, interactive experiences.
+                With cutting-edge AR technology, we bridge the gap between the digital and real worlds.
+            </p>
+        </div>
+
+        <!-- Our Team Section -->
+        <h2>Meet Our Team</h2>
+        <div class="team-container">
+            <div class="team-card">
+                <img src="https://via.placeholder.com/80" alt="Team Member">
+                <h3>John Doe</h3>
+                <p>Founder & CEO</p>
+            </div>
+            <div class="team-card">
+                <img src="https://via.placeholder.com/80" alt="Team Member">
+                <h3>Jane Smith</h3>
+                <p>AR Developer</p>
+            </div>
+            <div class="team-card">
+                <img src="https://via.placeholder.com/80" alt="Team Member">
+                <h3>Michael Lee</h3>
+                <p>UI/UX Designer</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>About Us | Terms & Conditions | Contact</p>
+    </div>
+</body>
+</html>

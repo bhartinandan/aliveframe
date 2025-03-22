@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AliveFrame</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: black;
+        }
+
+        /* Fullscreen Camera Feed */
+        #camera-feed {
+            position: absolute;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            z-index: 1;
+        }
+
+        /* Centered AR Video */
+        #ar-video {
+            position: absolute;
+            width: 50vw;
+            max-width: 500px;
+            height: auto;
+            opacity: 0.9;
+            z-index: 2;
+            cursor: grab;
+            transform-origin: center;
+            transform: translate(-50%, -50%) scale(1) rotateX(0deg) rotateY(0deg);
+            left: 50%;
+            top: 50%;
+            touch-action: none;
+        }
+
+        /* Button to Enable Gyro */
+        #gyro-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            font-size: 16px;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 3;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Camera Feed -->
+    <video id="camera-feed" autoplay playsinline></video>
+
+    <!-- Centered AR Video -->
+    <video id="ar-video" loop playsinline>
+        <source src="{{media.web_video.url}}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <!-- Button to Request Gyro Access -->
+    <button id="gyro-btn">Enable 360° Motion</button>
+
+    <script>
+        async function startCamera() {
+            try {
+                const constraints = { video: { facingMode: "environment" } };
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                document.getElementById("camera-feed").srcObject = stream;
+            } catch (err) {
+                console.error("Error accessing camera:", err);
+            }
+        }
+
+        async function playARVideo() {
+            const arVideo = document.getElementById("ar-video");
+
+            try {
+                arVideo.muted = false;  
+                await arVideo.play();
+            } catch (error) {
+                console.warn("Autoplay with sound blocked, retrying muted...");
+                arVideo.muted = true;
+                arVideo.play();
+
+                document.addEventListener("click", async () => {
+                    arVideo.muted = false;
+                    await arVideo.play();
+                }, { once: true });
+            }
+        }
+
+        window.onload = async () => {
+            startCamera();
+            await playARVideo();
+        };
+
+        // Resizable with Pinch & Scroll
+        const arVideo = document.getElementById("ar-video");
+        let scale = 1;
+        let pinchStartDistance = null;
+
+        function pinchStart(e) {
+            if (e.touches.length === 2) {
+                pinchStartDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+            }
+        }
+
+        function pinchMove(e) {
+            if (e.touches.length === 2 && pinchStartDistance) {
+                let pinchEndDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+
+                let scaleChange = pinchEndDistance / pinchStartDistance;
+                scale = Math.min(Math.max(scale * scaleChange, 0.5), 3); 
+
+                arVideo.style.transform = `translate(-50%, -50%) scale(${scale}) rotateX(0deg) rotateY(0deg)`;
+                pinchStartDistance = pinchEndDistance;
+            }
+        }
+
+        function pinchEnd() {
+            pinchStartDistance = null;
+        }
+
+        // Scroll to Resize
+        function handleScroll(event) {
+            if (event.deltaY < 0) {
+                scale = Math.min(scale + 0.1, 3);
+            } else {
+                scale = Math.max(scale - 0.1, 0.5);
+            }
+            arVideo.style.transform = `translate(-50%, -50%) scale(${scale}) rotateX(0deg) rotateY(0deg)`;
+        }
+
+        arVideo.addEventListener("touchstart", pinchStart, { passive: false });
+        document.addEventListener("touchmove", pinchMove, { passive: false });
+        document.addEventListener("touchend", pinchEnd);
+        document.addEventListener("wheel", handleScroll);
+
+        // 360° Gyro Motion
+        let gyroEnabled = false;
+        function handleOrientation(event) {
+            if (!gyroEnabled) return;
+            
+            let rotateY = event.alpha; // Compass direction (0 to 360°)
+            let rotateX = event.beta - 90; // Front-back tilt (-180 to 180°)
+            
+            arVideo.style.transform = `translate(-50%, -50%) scale(${scale}) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        }
+
+        async function enableGyro() {
+            if (typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function") {
+                const permission = await DeviceOrientationEvent.requestPermission();
+                if (permission === "granted") {
+                    gyroEnabled = true;
+                    window.addEventListener("deviceorientation", handleOrientation);
+                    document.getElementById("gyro-btn").style.display = "none";
+                } else {
+                    alert("Permission denied. 360° motion will not work.");
+                }
+            } else {
+                gyroEnabled = true;
+                window.addEventListener("deviceorientation", handleOrientation);
+                document.getElementById("gyro-btn").style.display = "none";
+            }
+        }
+
+        document.getElementById("gyro-btn").addEventListener("click", enableGyro);
+    </script>
+
+</body>
+</html>

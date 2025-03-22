@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AliveFrame</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: black;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #processedVideo {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover; /* Ensures the video scales proportionally */
+        }
+    </style>
+</head>
+<body>
+    <video id="video" autoplay playsinline style="display: none;"></video>
+    <canvas id="canvas" style="display: none;"></canvas>
+    <img id="processedVideo" alt="Processed Grayscale Video">
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const processedVideo = document.getElementById('processedVideo');
+
+        // Access the user's camera
+        navigator.mediaDevices.getUserMedia({ video: {
+                facingMode: { exact: "environment" }, // Request the back camera
+                width: { ideal: 640 },
+                height: { ideal: 480 },
+                frameRate: { ideal: 15, max: 20 } // Adjust frame rate to balance quality and performance
+            } }).then(stream => {
+            video.srcObject = stream;
+
+            // const ws = new WebSocket('ws://127.0.0.1:8000/ws/video_feed/');
+
+            // WebSocket configuration
+            const ws = new WebSocket('wss://67bd-2401-4900-7407-2b87-8426-2340-745d-897a.ngrok-free.app/ws/video_feed/');
+            const ctx = canvas.getContext('2d');
+
+            video.addEventListener('play', () => {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+
+                setInterval(() => {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const frame = canvas.toDataURL('image/jpeg', 0.5);
+                    ws.send(JSON.stringify({ image: frame }));
+                }, 200);
+            });
+
+            // Receive processed frames and display them
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.image) {
+                    processedVideo.src = data.image;
+                }
+            };
+        }).catch(error => {
+            console.error('Error accessing the camera:', error);
+        });
+    </script>
+</body>
+</html>

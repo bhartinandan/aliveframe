@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AliveFrame - Contact Us</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #001f3f, #000c1a);
+            color: white;
+            text-align: center;
+            overflow-x: hidden;
+        }
+        .container {
+            padding: 20px;
+        }
+
+        /* Logo Animation */
+        .logo {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 20px 0;
+            opacity: 0;
+            animation: fadeInScale 1.5s ease-in-out forwards;
+        }
+
+        /* Contact Form */
+        .contact-container {
+            max-width: 500px;
+            margin: 30px auto;
+            background: #002244;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            animation: fadeIn 1.5s ease-in-out forwards 1s;
+            text-align: left;
+        }
+
+        .contact-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            width: 100%;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .form-group input, 
+        .form-group textarea {
+            width: 90%;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background: #003366;
+            color: white;
+            outline: none;
+        }
+
+        .form-group textarea {
+            height: 120px;
+            resize: none;
+        }
+
+        .btn {
+            width: 90%;
+            padding: 12px;
+            font-size: 18px;
+            background: navy;
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s, background 0.3s;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            background: #0044cc;
+        }
+
+        /* Footer */
+        .footer {
+            background: #000c1a;
+            padding: 20px;
+            margin-top: 40px;
+            opacity: 0;
+            animation: fadeIn 2s ease-in-out forwards 1.5s;
+        }
+
+        /* Animations */
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo" onclick="window.location.href ='/'">AliveFrame</div>
+
+        <h2>Contact Us</h2>
+        <div class="contact-container">
+            <h2>Get in Touch</h2>
+            <form action="#" method="post">{% csrf_token %}
+                <div class="form-group">
+                    <label for="name">Your Name</label>
+                    <input type="text" id="name" name="name" placeholder="Enter your name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="business">Business Name</label>
+                    <input type="text" id="business" name="business" placeholder="Enter your business name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="contact">Contact Number</label>
+                    <input type="tel" id="contact" name="contact" placeholder="Enter your contact number" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Your Email</label>
+                    <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Your Message</label>
+                    <textarea id="message" name="message" placeholder="Write your message here" required></textarea>
+                </div>
+
+                <button type="submit" class="btn">Send Message</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>
+            <a onclick="window.location.href ='/aboutus'" style="color: white; text-decoration: none; margin: 0 10px;">About Us</a> |
+            <a onclick="window.location.href ='/tnc'" style="color: white; text-decoration: none; margin: 0 10px;">Terms & Conditions</a> |
+            <a onclick="window.location.href ='/contactus'" style="color: white; text-decoration: none; margin: 0 10px;">Contact</a>
+        </p>
+    </div>
+</body>
+</html>

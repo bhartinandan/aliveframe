@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AliveFrame - Terms & Conditions</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #001f3f, #000c1a);
+            color: white;
+            text-align: center;
+            overflow-x: hidden;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        /* Logo */
+        .logo {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 20px 0;
+            opacity: 0;
+            animation: fadeInScale 1.5s ease-in-out forwards;
+        }
+
+        /* Terms & Conditions Section */
+        .terms-container {
+            max-width: 800px;
+            margin: 30px auto;
+            background: #002244;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            animation: fadeIn 1.5s ease-in-out forwards 1s;
+            text-align: left;
+        }
+
+        .terms-container h2 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .terms-text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #c0dfff;
+            margin-bottom: 15px;
+        }
+
+        .terms-list {
+            padding-left: 20px;
+        }
+
+        .terms-list li {
+            margin-bottom: 10px;
+        }
+
+        /* Footer */
+        .footer {
+            background: #000c1a;
+            padding: 20px;
+            margin-top: 40px;
+            opacity: 0;
+            animation: fadeIn 2s ease-in-out forwards 1.5s;
+        }
+
+        /* Animations */
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo" onclick="window.location.href ='/'">AliveFrame</div>
+
+        <!-- Terms & Conditions Section -->
+        <div class="terms-container">
+            <h2>Terms & Conditions</h2>
+            <p class="terms-text">
+                Welcome to <b>AliveFrame</b>. By using our services, you agree to the following terms and conditions. Please read them carefully.
+            </p>
+
+            <ul class="terms-list">
+                <li><b>1. Use of Service:</b> Our AR technology is provided for entertainment and business use. Any misuse or violation will result in restricted access.</li>
+                <li><b>2. User Responsibilities:</b> Users must provide accurate information and comply with applicable laws when using our platform.</li>
+                <li><b>3. Intellectual Property:</b> All content, including videos, images, and code, remains the property of AliveFrame.</li>
+                <li><b>4. Privacy Policy:</b> We respect your privacy. All data collected will be handled securely as per our privacy policy.</li>
+                <li><b>5. Limitation of Liability:</b> AliveFrame is not responsible for any damages caused by misuse or technical failures.</li>
+                <li><b>6. Changes to Terms:</b> We reserve the right to update these terms at any time without prior notice.</li>
+            </ul>
+
+            <p class="terms-text">By continuing to use AliveFrame, you acknowledge and accept these terms.</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>
+            <a onclick="window.location.href ='/aboutus'" style="color: white; text-decoration: none; margin: 0 10px;">About Us</a> |
+            <a onclick="window.location.href ='/tnc'" style="color: white; text-decoration: none; margin: 0 10px;">Terms & Conditions</a> |
+            <a onclick="window.location.href ='/contactus'" style="color: white; text-decoration: none; margin: 0 10px;">Contact</a>
+        </p>
+    </div>
+</body>
+</html>
