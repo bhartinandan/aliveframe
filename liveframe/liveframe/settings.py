@@ -38,6 +38,11 @@ ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = SECRETS["csrf_trusted_origin"]
 RAZOR_KEY_ID=SECRETS["razor_key_id"]
 RAZOR_KEY_SECRET=SECRETS["razor_key_secret"]
+Name=SECRETS["NAME"]
+User=SECRETS["USER"]
+Password=SECRETS["PASSWORD"]
+Host=SECRETS["HOST"]
+Port=SECRETS["PORT"]
 
 # Application definition
 
@@ -88,10 +93,22 @@ WSGI_APPLICATION = 'liveframe.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': Name,  # Replace with your MySQL database name
+        'USER': User,      # Replace with your MySQL username
+        'PASSWORD': Password,  # Replace with your MySQL password
+        'HOST': Host, # Replace with the IP address of your VPS
+        'PORT': Port,        # Default MySQL port
     }
 }
 

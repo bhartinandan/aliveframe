@@ -53,7 +53,7 @@ class FramePayment(models.Model):
     payment_status = models.BooleanField(default=False)
     payment_id = models.CharField(max_length=30)
     razorpay_order_id = models.CharField(max_length=30)
-    amount = models.IntegerField()
+    amount = models.IntegerField(default=0)
     paid_on = models.DateTimeField(default=datetime.now, blank=True)
 
     def __str__(self):
