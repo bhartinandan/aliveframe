@@ -31,7 +31,7 @@ except IOError:
 SECRET_KEY = 'django-insecure--kg(4$9n_ba4k_vre-hd@(ev!)5+$oko3!8(&!$weucv4k51&0'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
