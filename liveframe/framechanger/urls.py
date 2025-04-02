@@ -46,6 +46,7 @@ urlpatterns = [
     path('contactus', views.contactus, name='contactus'),
     path('aboutus', views.aboutus, name='aboutus'),
     path('tnc', views.tnc, name='tnc'),
+    path('privacy-policy', views.privacy_policy, name='privacy-policy'),
     path('client-signup', views.client_signup, name='client-signup'),
     path('enterotp', views.otp, name='enterotp'),
     path('client-password', views.client_signup_password, name='client-password'),

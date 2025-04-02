@@ -585,6 +585,10 @@ def tnc(request,):
     return render(request, 
                   "tnc.html")
 
+def privacy_policy(request,):
+    return render(request, 
+                  "privacy_policy.html")
+
 
 
 
