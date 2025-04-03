@@ -55,3 +55,30 @@ def verify_otp(phone_no,otp,ver_code,aut):
 
     return json.loads(response.text)
 
+
+from hashids import Hashids
+
+hashids = Hashids(salt="lets_go_to_mountain", min_length=8)  # Add a salt for security
+
+def encode_primary_key(pk: int) -> str:
+    return hashids.encode(pk)
+
+def decode_primary_key(hashid: str) -> int:
+    return hashids.decode(hashid)[0] if hashids.decode(hashid) else None
+
+# Example usage
+
+
+
+def main():
+    print("Hello, this is the main function!")
+
+if __name__ == "__main__":
+    hashed_id = encode_primary_key(12)
+    print(hashed_id)  # Example: 'x9J3yK8d'
+
+    original_id = decode_primary_key("Q6ley8lJ")
+    print(original_id)  # Output: 123
+    
+
+

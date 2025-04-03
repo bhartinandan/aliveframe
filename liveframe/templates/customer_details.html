@@ -46,14 +46,14 @@
         <!-- Sidebar Start -->
         <div class="sidebar pe-4 pb-3">
             <nav class="navbar bg-secondary navbar-dark">
-                <a href="index.html" class="navbar-brand mx-4 mb-3">
+                <a onclick="window.location.href ='/'" class="navbar-brand mx-4 mb-3">
                     <h3 class="text-info"><i class="fa fa-user-edit me-2"></i>AliveFrame</h3>
                 </a>
                 <div class="d-flex align-items-center ms-4 mb-4">
                     
                     <div class="ms-3">
-                        <h6 class="mb-0">{{frameuser.client_id.name}}</h6>
-                        <span>{{frameuser.client_id.business_name}}</span>
+                        <h6 class="mb-0">{{frame_user.client_id.name}}</h6>
+                        <span>{{frame_user.client_id.business_name}}</span>
                     </div>
                 </div>
                 
@@ -66,7 +66,7 @@
         <div class="content">
             <!-- Navbar Start -->
             <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
-                <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
+                <a onclick="window.location.href ='/'" class="navbar-brand d-flex d-lg-none me-4">
                     <h2 class="text-info mb-0"><i class="fa fa-user-edit"></i></h2>
                 </a>
                 <a href="#" class="sidebar-toggler flex-shrink-0 text-info">
@@ -84,7 +84,6 @@
                         </a>
                         <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
                             <a href="#" class="dropdown-item">My Profile</a>
-                            <a href="#" class="dropdown-item">Settings</a>
                             <a href="#" class="dropdown-item">Log Out</a>
                         </div>
                     </div>
@@ -110,19 +109,19 @@
                             </nav>
                             <div class="tab-content pt-3" id="nav-tabContent">
                                 <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
-                                    Diam sea sanctus amet clita lorem sit sanctus ea elitr. Lorem rebum est elitr eos. Dolores aliquyam sadipscing dolor sadipscing accusam voluptua tempor. Sanctus elitr sanctus diam tempor diam aliquyam et labore clita, ipsum takimata amet est erat, accusam takimata gubergren sea sanctus duo nonumy. Ipsum diam ipsum sit kasd.
+                                    User can update video here
                                 </div>
                                 <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
                                         <ul class="list-group">
-                                            <li class="list-group-item bg-transparent">Customer Id : {{frameuser.id}}</li>
-                                            <li class="list-group-item bg-transparent">Customer Name : {{frameuser.name}}</li>
-                                            <li class="list-group-item bg-transparent">Customer Contact : {{frameuser.contact}}</li>
-                                            <li class="list-group-item bg-transparent">Customer Date : {{frameuser.date}}</li>
-                                            <li class="list-group-item bg-transparent">Customer Email : {{frameuser.email}}</li>
-                                            <li class="list-group-item bg-transparent">Customer City : {{frameuser.city}}</li>
-                                            <li class="list-group-item bg-transparent">Customer State : {{frameuser.state}}</li>
-                                            <li class="list-group-item bg-transparent">Customer Address : {{frameuser.address}}</li>
-                                            <li class="list-group-item bg-transparent">Customer Country : {{frameuser.country}}</li>
+                                            <li class="list-group-item bg-transparent">Customer Id : {{frame_user.id}}</li>
+                                            <li class="list-group-item bg-transparent">Customer Name : {{frame_user.name}}</li>
+                                            <li class="list-group-item bg-transparent">Customer Contact : {{frame_user.contact}}</li>
+                                            <li class="list-group-item bg-transparent">Customer Date : {{frame_user.date}}</li>
+                                            <li class="list-group-item bg-transparent">Customer Email : {{frame_user.email}}</li>
+                                            <li class="list-group-item bg-transparent">Customer City : {{frame_user.city}}</li>
+                                            <li class="list-group-item bg-transparent">Customer State : {{frame_user.state}}</li>
+                                            <li class="list-group-item bg-transparent">Customer Address : {{frame_user.address}}</li>
+                                            <li class="list-group-item bg-transparent">Customer Country : {{frame_user.country}}</li>
                                         </ul>
                                 </div>
                                 
@@ -141,7 +140,7 @@
                                         <label for="formFileSm" class="form-label"></label>
                                         <input class="form-control form-control-sm bg-dark" id="videoUpload" name="videoUpload" type="file" required>
                                         <p><button type="submit" class="btn btn-success rounded-pill m-2">Replace</button></p>
-                                        <p class="mb-0">Dolor et eos labore, stet justo sed est sed. Diam sed sed dolor stet amet eirmod eos labore diam</p>
+                                        <p class="mb-0"></p>
                                     </form>
                                     
                                 </div>

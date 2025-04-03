@@ -40,7 +40,7 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
-    path('qr/userex/<int:userid>', views.camera_feed, name='camera_feed'),
+    path('qr/userex/<str:hasheduserid>', views.camera_feed, name='camera_feed'),
     path('qr/<int:frameuserid>', views.generate_qr, name='qr'),
     path('', views.landing_page, name='landing_page'),
     path('contactus', views.contactus, name='contactus'),

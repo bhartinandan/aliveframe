@@ -14,7 +14,10 @@ from django.contrib.auth.decorators import login_required
 import razorpay
 from django.contrib.auth import logout
 from django.shortcuts import redirect
-
+import logging
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+from django.contrib import messages
 
 # authorize razorpay client with API Keys.
 razorpay_client = razorpay.Client(
@@ -24,573 +27,686 @@ razorpay_client = razorpay.Client(
 # from .models import MediaData
 
 # For web experience
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
 @login_required
 def generate_qr(request, frameuserid):
-    print(frameuserid)
-    # Generate QR code linking to the media URL
-    media_url = request.build_absolute_uri(f'userex/{frameuserid}')
-    qr = qrcode.QRCode(box_size=10, border=4)
-    qr.add_data(media_url)
-    qr.make(fit=True)
+    """
+    Generates a QR code for a given frame user ID.
+    Returns a PNG image containing the QR code.
+    """
+    try:
+        # Validate frameuserid
+        if not frameuserid:
+            logger.error("Invalid frameuserid provided.")
+            return JsonResponse({"error": "Invalid user ID"}, status=400)
 
-    img = qr.make_image(fill_color="black", back_color="white")
-    response = HttpResponse(content_type="image/png")
-    img.save(response, "PNG")
-    return response
+        # Encode the user ID
+        userid_hash = encode_primary_key(frameuserid)
 
+        # Construct the media URL
+        media_url = request.build_absolute_uri(f'/userex/{userid_hash}')
+        logger.info(f"Generating QR Code for: {media_url}")
 
-"""For app experience"""
+        # Create the QR code
+        qr = qrcode.QRCode(box_size=10, border=4)
+        qr.add_data(media_url)
+        qr.make(fit=True)
 
-# def generate_qr(request, media_id):
-#     # Generate QR code linking to the media URL
-#     media_url = request.build_absolute_uri(f'/media/{media_id}/')
-#     qr = qrcode.QRCode(box_size=10, border=4)
-#     qr.add_data(media_url)
-#     qr.make(fit=True)
+        # Generate image
+        img = qr.make_image(fill_color="black", back_color="white")
 
-#     img = qr.make_image(fill_color="black", back_color="white")
-#     response = HttpResponse(content_type="image/png")
-#     img.save(response, "PNG")
-#     return response
+        # Prepare response
+        response = HttpResponse(content_type="image/png")
+        img.save(response, "PNG")
 
-# def media_detail(request, media_id):
-#     # Serve media details (image and video)
-#     media = get_object_or_404(MediaData, id=media_id)
-#     response_data = {
-#         "title": media.title,
-#         "image_url": request.build_absolute_uri(media.image.url),
-#         "video_url": request.build_absolute_uri(media.video.url),
-#     }
-#     return JsonResponse(response_data)
+        return response
+
+    except Exception as e:
+        logger.exception("Error generating QR code")
+        return JsonResponse({"error": "Internal server error"}, status=500)
 
 @login_required
 def user_dashboard(request):
-    user = request.user
-    print(user)
-    client=ClientInfo.objects.filter(user=request.user.id).first()
-    frameuser=FrameUserInfo.objects.filter(client_id=client).all()
-    framecount=FrameCount.objects.filter(client_id=client).first()
-    left_frame=0
-    used_frame = 0
-    total_frame=0
-    if framecount:
-        left_frame=framecount.frame_count
-        used_frame = int(len(frameuser))
-        total_frame=int(left_frame)+used_frame
+    """
+    Renders the user dashboard with client information, frame user details, 
+    and frame usage statistics.
+    """
+    try:
+        user = request.user
+        logger.info(f"Accessing dashboard for user: {user.username} (ID: {user.id})")
 
-    
-    print(frameuser)
-    data={'client':client,
-          'frameuser':frameuser}
+        # Fetch client info
+        client = ClientInfo.objects.filter(user=user).first()
+        if not client:
+            logger.warning(f"No ClientInfo found for user: {user.username}")
+            return JsonResponse({"error": "Client information not found."}, status=404)
 
-    return render(request,
-                "user_dashboard.html",
-                context={'client':client,
-          'frameuser':frameuser,
-          'framecount':framecount,
-          'leftframe':left_frame,
-          'usedframe':used_frame,
-          'totalframe':total_frame
-          })
+        # Fetch frame user information
+        frame_users = FrameUserInfo.objects.filter(client_id=client)
+        
+        # Fetch frame count details
+        frame_count = FrameCount.objects.filter(client_id=client).first()
+
+        # Calculate frame statistics
+        left_frames = frame_count.frame_count if frame_count else 0
+        used_frames = frame_users.count()
+        total_frames = left_frames + used_frames
+
+        context = {
+            "client": client,
+            "frame_users": frame_users,
+            "frame_count": frame_count,
+            "left_frames": left_frames,
+            "used_frames": used_frames,
+            "total_frames": total_frames
+        }
+
+        return render(request, "user_dashboard.html", context)
+
+    except Exception as e:
+        logger.exception("Error occurred while loading user dashboard")
+        return JsonResponse({"error": "An internal server error occurred."}, status=500)
 
 @login_required
 def user_dashboard_search(request, id):
-    user = request.user
-    print(user)
-    client=ClientInfo.objects.filter(user=request.user.id).first()
-    frameuser=FrameUserInfo.objects.filter(client_id=client).all()
-    framecount=FrameCount.objects.filter(client_id=client).first()
+    """
+    Searches and displays the user dashboard with client and frame details based on a given ID.
+    """
+    try:
+        user = request.user
+        logger.info(f"User {user.username} (ID: {user.id}) is accessing dashboard search with ID: {id}")
 
-    left_frame=framecount.frame_count
-    used_frame = int(len(frameuser))
-    total_frame=int(left_frame)+used_frame
-    
-    print(frameuser)
-    data={'client':client,
-          'frameuser':frameuser}
+        # Fetch client info
+        client = get_object_or_404(ClientInfo, user=user)
 
-    return render(request,
-                "user_dashboard.html",
-                context={'client':client,
-          'frameuser':frameuser,
-          'framecount':framecount,
-          'leftframe':left_frame,
-          'usedframe':used_frame,
-          'totalframe':total_frame
-          })
+        # Fetch frame user information
+        frame_users = FrameUserInfo.objects.filter(client_id=client)
+
+        # Fetch frame count details
+        frame_count = FrameCount.objects.filter(client_id=client).first()
+
+        if not frame_count:
+            logger.warning(f"No FrameCount found for client: {client.id}")
+            left_frames = used_frames = total_frames = 0
+        else:
+            left_frames = frame_count.frame_count
+            used_frames = frame_users.count()
+            total_frames = left_frames + used_frames
+
+        context = {
+            "client": client,
+            "frame_users": frame_users,
+            "frame_count": frame_count,
+            "left_frames": left_frames,
+            "used_frames": used_frames,
+            "total_frames": total_frames
+        }
+
+        return render(request, "user_dashboard.html", context)
+
+    except Exception as e:
+        logger.exception("Error occurred while loading user dashboard search")
+        return JsonResponse({"error": "An internal server error occurred."}, status=500)
 
 @login_required
-def customer_data(request,id):
-    frameuser=FrameUserInfo.objects.filter(id=id).first()
-    framemedia=MediaForWebExperience.objects.filter(user=frameuser).first()
-    print("frame")
-    print(framemedia)
-    if request.method == "POST":
-        framemedia.web_video=request.FILES.get('videoUpload')
-        print(request.FILES.get('videoUpload'))
-        framemedia.save()
-    return render(request,
-                "customer_details.html",
-                context={'frameuser':frameuser,
-                         'framemedia':framemedia
-          })
+def customer_data(request, id):
+    """
+    Handles customer data retrieval and media upload for a specific frame user.
+    """
+    try:
+        # Fetch the FrameUserInfo instance
+        frame_user = get_object_or_404(FrameUserInfo, id=id)
+
+        # Fetch the associated media
+        frame_media = MediaForWebExperience.objects.filter(user=frame_user).first()
+
+        logger.info(f"Accessing customer data for FrameUser ID: {id}")
+
+        if request.method == "POST":
+            uploaded_video = request.FILES.get('videoUpload')
+            
+            if uploaded_video:
+                if not frame_media:
+                    logger.warning(f"No MediaForWebExperience found for FrameUser ID: {id}")
+                    return JsonResponse({"error": "Media not found for this frame user."}, status=404)
+
+                frame_media.web_video = uploaded_video
+                frame_media.save()
+                logger.info(f"Video uploaded successfully for FrameUser ID: {id}")
+
+        return render(
+            request,
+            "customer_details.html",
+            context={
+                "frame_user": frame_user,
+                "frame_media": frame_media
+            }
+        )
+
+    except Exception as e:
+        logger.exception("Error occurred while handling customer data")
+        return JsonResponse({"error": "An internal server error occurred."}, status=500)
 
 def client_signup(request):
+    """
+    Handles client signup via phone number and OTP verification.
+    """
     try:
-        message = ''
+        message = ""
+
         if request.method == "POST":
-            # form = forms.SignupuserForm(request.POST)
-            user_id=request.POST.get('mobile')
-            # user_id=form.cleaned_data['mobile']
-            user_exists = User.objects.filter(username=user_id).first()
-            if user_exists is not None:
-                message = f'mobile number already exists!'
-            else:
-                data=token()
-                request.session['user_id']=user_id
-                request.session['token']=data["token"]
-                response=send_phone_otp(user_id, data["token"])
-                response_data=response["data"]
-                if response["responseCode"]==200:
-                    request.session['verificationId']=response_data["verificationId"]
-                    return redirect("/enterotp")
-                elif response["responseCode"]==506:
-                    request.session['verificationId']=response_data["verificationId"]
-                    return redirect("/enterotp")
-                else:
-                    message = f'Retry sending OTP'
-        return render(request,
-                    "client_signup.html",
-                    context={
-                    'message': message})
-        
-    except:
-        return render(
-            request, 'client_error.html')
-    # if request.method == "POST":
-    #     request.session['mobile'] = request.POST.get('mobile')
-    #     return redirect("/enterotp")
-    # return render(request,
-    #             "client_signup.html")
+            user_id = request.POST.get("mobile")
+
+            if not user_id:
+                return JsonResponse({"error": "Mobile number is required"}, status=400)
+
+            # Check if user already exists
+            if User.objects.filter(username=user_id).exists():
+                message = "Mobile number already exists!"
+                return render(request, "client_signup.html", {"message": message})
+
+            # Generate OTP token
+            data = token()
+            request.session["user_id"] = user_id
+            request.session["token"] = data["token"]
+
+            # Send OTP
+            response = send_phone_otp(user_id, data["token"])
+            response_data = response.get("data", {})
+
+            if response.get("responseCode") in [200, 506]:
+                request.session["verificationId"] = response_data.get("verificationId")
+                logger.info(f"OTP sent successfully to {user_id}")
+                return redirect("/enterotp")
+
+            message = "Retry sending OTP"
+            logger.warning(f"Failed OTP attempt for {user_id}: {response}")
+
+        return render(request, "client_signup.html", {"message": message})
+
+    except Exception as e:
+        logger.exception("Error occurred during client signup")
+        return render(request, "client_error.html", {"error_message": "An unexpected error occurred. Please try again later."})
 
 def otp(request):
-    # form = forms.UserotpForm()
-    message = ''
-    if request.method == "POST":
-        # print("enter otp")
-        # form = forms.UserotpForm(request.POST)
-        message=""
-        # print(form)
-        # print(form.is_valid())
-        # if form.is_valid():
-        otp=request.POST.get('otp')
-        # print(otp)
-        user_id=request.session['user_id']
-        token=request.session['token']
-        verificationId=request.session['verificationId']
-        print(user_id,token,verificationId)
-        response=verify_otp(user_id,otp,verificationId,token)
-        if response["responseCode"]==200:
-            response_data=response["data"]
-            request.session['verificationStatus']=response_data['verificationStatus']
-            return redirect("/client-password")
-        else:
-            message="Wrong OTP Please enter correct OTP"
-    return render(request,
-                "client_otp.html",
-                context={
-                'message': message})
+    """
+    Handles OTP verification for user authentication.
+    """
+    try:
+        message = ""
+
+        if request.method == "POST":
+            otp = request.POST.get("otp")
+
+            # Validate OTP input
+            if not otp:
+                return JsonResponse({"error": "OTP is required"}, status=400)
+
+            # Retrieve session data
+            user_id = request.session.get("user_id")
+            token = request.session.get("token")
+            verification_id = request.session.get("verificationId")
+
+            if not user_id or not token or not verification_id:
+                logger.error("Session data missing for OTP verification")
+                return render(request, "client_error.html", {"error_message": "Session expired. Please restart the process."})
+
+            logger.info(f"Verifying OTP for user: {user_id}")
+
+            # Verify OTP
+            response = verify_otp(user_id, otp, verification_id, token)
+
+            if response.get("responseCode") == 200:
+                response_data = response.get("data", {})
+                request.session["verificationStatus"] = response_data.get("verificationStatus")
+
+                logger.info(f"OTP verified successfully for {user_id}")
+                return redirect("/client-password")
+
+            message = "Wrong OTP. Please enter the correct OTP."
+            logger.warning(f"Incorrect OTP entered for {user_id}")
+
+        return render(request, "client_otp.html", {"message": message})
+
+    except Exception as e:
+        logger.exception("Error occurred during OTP verification")
+        return render(request, "client_error.html", {"error_message": "An unexpected error occurred. Please try again later."})
     
-    # except:
-    #     return render(
-    #         request, 'client_error.html')
 
 def client_signup_password(request):
-    # form = forms.PasswordForm(request.POST)
-    # if form.is_valid():
-    if request.method == "POST":
-        user_id=request.session['user_id']
-        password=request.POST.get('password')
-        if request.session['verificationStatus']=="VERIFICATION_COMPLETED":
+    """
+    Handles client password setup after OTP verification.
+    """
+    try:
+        if request.method == "POST":
+            user_id = request.session.get("user_id")
+            verification_status = request.session.get("verificationStatus")
+            password = request.POST.get("password")
+
+            # Validate session data
+            if not user_id or verification_status != "VERIFICATION_COMPLETED":
+                logger.warning("Session expired or invalid verification status for user: %s", user_id)
+                return redirect("/client-signup")
+
+            # Validate password
+            if not password or len(password) < 6:
+                logger.warning("Weak password attempt for user: %s", user_id)
+                return render(request, "client_password.html", {"error": "Password must be at least 6 characters long."})
+
+            # Check if user already exists
+            if User.objects.filter(username=user_id).exists():
+                logger.warning("User already exists: %s", user_id)
+                return render(request, "client_password.html", {"error": "User already exists. Please log in instead."})
+
+            # Create and authenticate user
             user = User.objects.create_user(username=user_id, password=password)
             user.save()
-            user = authenticate(
-                username=user_id,
-                password=password,
-            )
-            if user is not None:
-                login(request, user)
-                # message = f'Hello {user.username}! You have been logged in'
+
+            authenticated_user = authenticate(username=user_id, password=password)
+            if authenticated_user is not None:
+                login(request, authenticated_user)
+                logger.info("User signed up and logged in: %s", user_id)
                 return redirect("/client-form")
-                # return redirect('/dashboard')
-            else:
-                message = 'Invalid userId or password / Not registered, create new'
-            return redirect("/client-form")
-        
-    return render(request,
-                "client_password.html",context={})
+
+            logger.error("User authentication failed after signup: %s", user_id)
+            return render(request, "client_password.html", {"error": "Account creation failed. Please try again."})
+
+        return render(request, "client_password.html")
+
+    except Exception as e:
+        logger.exception("Unexpected error in client_signup_password")
+        return render(request, "client_error.html", {"error_message": "An error occurred. Please try again later."})
 
 @login_required
 def client_form(request):
-    usr=request.user
+    """
+    Handles client information submission.
+    """
+    user = request.user
 
     if request.method == "POST":
-        obj=ClientInfo()
-        obj.user=usr
-        obj.name = request.POST.get('name')
-        obj.business_name = request.POST.get('businessname')
-        obj.email = request.POST.get('emailid')
-        obj.address = request.POST.get('address')
-        obj.pin_code = request.POST.get('pincode')
-        obj.city = request.POST.get('city')
-        obj.contact = request.POST.get('contact')
-        obj.state = request.POST.get('state')
-        obj.country = request.POST.get('country')
-        obj.save()
-        return redirect("/dashboard")
+        try:
+            # Extract form data
+            name = request.POST.get("name", "").strip()
+            business_name = request.POST.get("businessname", "").strip()
+            email = request.POST.get("emailid", "").strip()
+            address = request.POST.get("address", "").strip()
+            pin_code = request.POST.get("pincode", "").strip()
+            city = request.POST.get("city", "").strip()
+            contact = request.POST.get("contact", "").strip()
+            state = request.POST.get("state", "").strip()
+            country = request.POST.get("country", "").strip()
 
-    return render(request,
-                "client_details.html")
+            # Input Validation
+            if not name or not business_name or not email or not contact:
+                return render(request, "client_details.html", {
+                    "error": "Name, Business Name, Email, and Contact are required fields."
+                })
+
+            # Validate email format
+            try:
+                validate_email(email)
+            except ValidationError:
+                return render(request, "client_details.html", {
+                    "error": "Invalid email format. Please enter a valid email address."
+                })
+
+            # Validate pin code (assuming Indian 6-digit format)
+            if pin_code and (not pin_code.isdigit() or len(pin_code) != 6):
+                return render(request, "client_details.html", {
+                    "error": "Invalid Pin Code. It should be a 6-digit number."
+                })
+
+            # Validate contact number (assuming 10-digit Indian format)
+            if contact and (not contact.isdigit() or len(contact) != 10):
+                return render(request, "client_details.html", {
+                    "error": "Invalid Contact Number. It should be a 10-digit number."
+                })
+
+            # Check if the user already has a client profile
+            if ClientInfo.objects.filter(user=user).exists():
+                return render(request, "client_details.html", {
+                    "error": "Client profile already exists. You cannot create multiple profiles."
+                })
+
+            # Save to the database
+            client_info = ClientInfo(
+                user=user,
+                name=name,
+                business_name=business_name,
+                email=email,
+                address=address,
+                pin_code=pin_code,
+                city=city,
+                contact=contact,
+                state=state,
+                country=country,
+            )
+            client_info.save()
+            
+            logger.info("Client information saved successfully for user: %s", user.username)
+            return redirect("/dashboard")
+
+        except Exception as e:
+            logger.exception("Error while saving client information for user: %s", user.username)
+            return render(request, "client_details.html", {
+                "error": "An unexpected error occurred. Please try again later."
+            })
+
+    return render(request, "client_details.html")
 
 def client_signin(request):
-    try:
-        # form = forms.LoginForm()
-        message = ''
-        if request.method == "POST":
-            # form = forms.LoginForm(request.POST)
-            # if form.is_valid():
-            #     print(form.is_valid())
-            user = authenticate(
-                username=request.POST.get('mobile'),
-                password=request.POST.get('password'),
-            )
+    """
+    Handles client sign-in.
+    """
+    message = ''
+    
+    if request.method == "POST":
+        try:
+            # Extract user input
+            mobile = request.POST.get("mobile", "").strip()
+            password = request.POST.get("password", "").strip()
+
+            # Validate mobile number (Assuming 10-digit format for India)
+            if not mobile or not password:
+                return render(request, "client_signin.html", {
+                    "message": "Mobile number and password are required."
+                })
             
+            if not mobile.isdigit() or len(mobile) != 10:
+                return render(request, "client_signin.html", {
+                    "message": "Invalid mobile number. It should be a 10-digit number."
+                })
+
+            # Authenticate user
+            user = authenticate(username=mobile, password=password)
+
             if user is not None:
                 login(request, user)
-                message = f'Hello {user.username}! You have been logged in'
-                return redirect('/dashboard')
+                logger.info("User %s logged in successfully.", user.username)
+                return redirect("/dashboard")
             else:
-                message = 'Invalid userId or password / Not registered, create new'
-        return render(
-            request, "client_signin.html",
-            context={
-                    'message': message})
-    except:
-        return render(
-            request, 'client_error.html')
+                logger.warning("Failed login attempt for mobile: %s", mobile)
+                return render(request, "client_signin.html", {
+                    "message": "Invalid mobile number or password. Please try again or create an account."
+                })
+        
+        except Exception as e:
+            logger.exception("Error during client login: %s", str(e))
+            return render(request, "client_error.html", {
+                "message": "An unexpected error occurred. Please try again later."
+            })
+
+    return render(request, "client_signin.html")
     
 def user_logout(request):
-    logout(request)
-    return redirect("login")  # Redirect to the login page after logout
+    """
+    Logs out the user and redirects to the login page.
+    """
+    try:
+        if request.user.is_authenticated:
+            username = request.user.username  # Capture username before logout
+            logout(request)
+            logger.info("User %s logged out successfully.", username)
+        else:
+            logger.warning("Logout attempted by an unauthenticated user.")
+
+        return redirect("/login")  # Redirect to login page after logout
+
+    except Exception as e:
+        logger.exception("Error during logout: %s", str(e))
+        return redirect("/error")  # Redirect to an error page if an issue occurs
     
 @login_required
-def add_frame(request,id):
-    usr=request.user
-    cli_id=ClientInfo.objects.filter(id=id).first()
+def add_frame(request, id):
+    """
+    Handles adding a new frame user along with media for web experience.
+    """
+    usr = request.user
 
-    if request.method == "POST":
-        obj=FrameUserInfo()
-        obj.name = request.POST.get('name')
-        obj.email = request.POST.get('emailid')
-        obj.address = request.POST.get('address')
-        obj.pin_code = request.POST.get('pincode')
-        obj.city = request.POST.get('city')
-        obj.contact = request.POST.get('contact')
-        obj.state = request.POST.get('state')
-        obj.country = request.POST.get('country')
-        obj.client_id = cli_id
-        obj.save()
-        obj1=MediaForWebExperience()
-        obj1.user=obj
-        obj1.web_video=request.FILES.get('videoUpload')
-        obj1.save()
-        return redirect("/dashboard")
-    return render(request, 
-                  "consumer_detail_form.html")
+    try:
+        # Get the client or return 404 if not found
+        cli_id = get_object_or_404(ClientInfo, id=id)
+
+        if request.method == "POST":
+            name = request.POST.get('name')
+            email = request.POST.get('emailid')
+            address = request.POST.get('address')
+            pin_code = request.POST.get('pincode')
+            city = request.POST.get('city')
+            contact = request.POST.get('contact')
+            state = request.POST.get('state')
+            country = request.POST.get('country')
+            video_file = request.FILES.get('videoUpload')
+
+            # Validate required fields
+            if not all([name, email, contact]):
+                messages.error(request, "Name, Email, and Contact are required fields.")
+                return redirect(request.path)
+
+            # Save FrameUserInfo
+            frame_user = FrameUserInfo.objects.create(
+                name=name,
+                email=email,
+                address=address,
+                pin_code=pin_code,
+                city=city,
+                contact=contact,
+                state=state,
+                country=country,
+                client_id=cli_id
+            )
+            frame_count_item = FrameCount.objects.filter(client_id=cli_id).first()
+            frame_count_item.frame_count = frame_count_item.frame_count - 1
+            frame_count_item.save()
+
+
+            # Save Media if uploaded
+            if video_file:
+                MediaForWebExperience.objects.create(user=frame_user, web_video=video_file)
+
+            logger.info("New frame user '%s' added for client '%s'.", name, cli_id)
+            messages.success(request, "Frame user added successfully!")
+            return redirect("/dashboard")
+
+    except ValidationError as e:
+        logger.error("Validation error: %s", str(e))
+        messages.error(request, "Invalid input data. Please check your inputs.")
+    except Exception as e:
+        logger.exception("Error adding frame user: %s", str(e))
+        messages.error(request, "An unexpected error occurred. Please try again.")
+
+    return render(request, "consumer_detail_form.html")
 
 @login_required
 def payment(request):
-    # encoded_data = request.GET.get('data')
-    # decoded_data = base64.b64decode(unquote(encoded_data)).decode('utf-8')
-    # print("done")
-    # print(decoded_data)
-    framecount=10
-    if request.method == "POST":
-        framecount=int(request.POST.get('count'))
-        request.session['framecount']=framecount
-        amount = (framecount*99)*100  # Rs. amount in paisa
-        request.session['fnl_amount']=amount
-        currency = 'INR'
-        print(framecount)
+    """
+    Handles frame purchase and initiates Razorpay payment order.
+    """
+    try:
+        if request.method == "POST":
+            frame_count = int(request.POST.get('count', 10))  # Default to 10 frames if missing
+            if frame_count <= 0:
+                messages.error(request, "Invalid frame count.")
+                return JsonResponse({"error": "Invalid frame count"}, status=400)
 
-        # Create a Razorpay Order
-        razorpay_order = razorpay_client.order.create(dict(amount=amount,
-                                                        currency=currency,
-                                                        payment_capture='0'))
-        print(razorpay_order)
-        return JsonResponse({
-            "order_id": razorpay_order["id"],
-            "amount": amount,
-            "currency": "INR",
-            "key": settings.RAZOR_KEY_ID,
-        })
+            request.session['framecount'] = frame_count
+            amount = (frame_count * 99) * 100  # Convert to paisa
+            request.session['fnl_amount'] = amount
 
-        # order id of newly created order.
-        # razorpay_order_id = razorpay_order['id']
-        # callback_url = 'paymenthandler/'
+            # Create Razorpay Order
+            razorpay_order = razorpay_client.order.create({
+                "amount": amount,
+                "currency": "INR",
+                "payment_capture": '1'  # Auto-capture enabled
+            })
 
-        # # we need to pass these details to frontend.
-        # context = {}
-        # context['razorpay_order_id'] = razorpay_order_id
-        # context['razorpay_merchant_key'] = settings.RAZOR_KEY_ID
-        # context['razorpay_amount'] = amount
-        # context['currency'] = currency
-        # context['callback_url'] = callback_url
+            logger.info(f"Created Razorpay order: {razorpay_order['id']} for {amount} INR")
 
-    return render(request,
-                  "payment.html")
+            return JsonResponse({
+                "order_id": razorpay_order["id"],
+                "amount": amount,
+                "currency": "INR",
+                "key": settings.RAZOR_KEY_ID,
+            })
 
-# we need to csrf_exempt this url as
-# POST request will be made by Razorpay
-# and it won't have the csrf token.
+    except Exception as e:
+        logger.exception("Error in payment processing: %s", str(e))
+        return JsonResponse({"error": "Something went wrong. Please try again."}, status=500)
+
+    return render(request, "payment.html")
+
 @csrf_exempt
 def paymenthandler(request):
- 
-    # only accept POST request.
-    if request.method == "GET":
+    """
+    Handles Razorpay payment verification and updates frame count.
+    """
+    if request.method == "POST":
         try:
-            print("payment handler called")
-            # get the required parameters from post request.
-            payment_id = request.GET.get('payment_id')
-            print(payment_id)
-            razorpay_order_id = request.GET.get('order_id')
-            print(razorpay_order_id)
-            signature = request.GET.get('signature')
-            print(signature)
+            payment_id = request.POST.get('payment_id')
+            order_id = request.POST.get('order_id')
+            signature = request.POST.get('signature')
+
+            if not all([payment_id, order_id, signature]):
+                logger.warning("Missing payment parameters")
+                return HttpResponseBadRequest("Missing payment parameters")
+
             params_dict = {
-                'razorpay_order_id': razorpay_order_id,
+                'razorpay_order_id': order_id,
                 'razorpay_payment_id': payment_id,
                 'razorpay_signature': signature
             }
 
-            
- 
-            # verify the payment signature.
-            result = razorpay_client.utility.verify_payment_signature(
-                params_dict)
-            print(result)
-            if result is not None:
-                amount = request.session['fnl_amount'] # Rs. 200
-                try:
- 
-                    # capture the payemt
-                    cap=razorpay_client.payment.capture(payment_id, amount)
-                    print(cap)
- 
-                    # render success page on successful caputre of payment
-                    # return render(request, 'c_paymentsuccess.html')
-                    # response = order_placed(request.session['framecount'])
-                    # return response
-                    count=request.session['framecount']
-                    usr=request.user
-                    frameuser = ClientInfo.objects.filter(user=usr).first()
-                    framecount = FrameCount.objects.filter(client_id=frameuser).first()
-                    if framecount:
-                        count_var=framecount.frame_count
-                        framecount.frame_count=count_var+count
-                        framecount.save()
-                    else:
-                        obj=FrameCount()
-                        obj.client_id=frameuser
-                        obj.frame_count=count
-                        obj.save()
-
-                    obj1=FramePayment()
-                    obj1.client_id=frameuser
-                    obj1.payment_status=True
-                    obj1.payment_id=payment_id
-                    obj1.razorpay_order_id=razorpay_order_id
-                    obj1.amount=amount
-
-                    response = redirect('/dashboard')
-                    return response
-                except:
- 
-                    # if there is an error while capturing payment.
-                    return render(request, 'c_paymentfailure.html')
-            else:
- 
-                # if signature verification fails.
+            # Verify Razorpay payment signature
+            if not razorpay_client.utility.verify_payment_signature(params_dict):
+                logger.error("Payment signature verification failed.")
                 return render(request, 'c_paymentfail.html')
-        except:
- 
-            # if we don't find the required parameters in POST data
-            return HttpResponseBadRequest()
-    else:
-       # if other than POST request is made.
-        return HttpResponseBadRequest()
-    
-def order_placed(request,count):
-    print(count)
-    usr=request.user
-    frameuser = ClientInfo.objects.filter(user=usr).first()
-    framecount = FrameCount.objects.filter(client_id=frameuser).first()
-    if framecount:
-        count_var=framecount.frame_count
-        framecount.frame_count=count_var+count
-        framecount.save()
-    else:
-        obj=FrameCount()
-        obj.client_id=frameuser
-        obj.frame_count=count
-        obj.save()
 
-    response = redirect('/dashboard')
-    return response
+            amount = request.session.get('fnl_amount', 0)
+            if amount <= 0:
+                logger.error("Invalid amount retrieved from session.")
+                return render(request, 'c_paymentfail.html')
 
+            # Capture the payment
+            razorpay_client.payment.capture(payment_id, amount)
+            logger.info(f"Payment captured: {payment_id} for {amount} INR")
 
+            # Update frame count
+            count = request.session.get('framecount', 0)
+            update_frame_count(request.user, count, payment_id, order_id, amount)
 
+            messages.success(request, "Payment successful! Frames added to your account.")
+            return redirect('/dashboard')
 
+        except razorpay.errors.BadRequestError as e:
+            logger.exception("Razorpay BadRequestError: %s", str(e))
+            return render(request, 'c_paymentfail.html')
 
+        except Exception as e:
+            logger.exception("Unexpected error in payment handler: %s", str(e))
+            return render(request, 'c_paymentfailure.html')
 
+    return HttpResponseBadRequest("Invalid request method")
 
+def update_frame_count(user, count, payment_id, order_id, amount):
+    """
+    Updates the frame count and logs the payment in the database.
+    """
+    try:
+        client = ClientInfo.objects.filter(user=user).first()
+        if not client:
+            logger.error("Client not found for user: %s", user)
+            return
 
+        frame_count = FrameCount.objects.filter(client_id=client).first()
+        if frame_count:
+            frame_count.frame_count += count
+            frame_count.save()
+        else:
+            FrameCount.objects.create(client_id=client, frame_count=count)
 
+        # Save payment record
+        FramePayment.objects.create(
+            client_id=client,
+            payment_status=True,
+            payment_id=payment_id,
+            razorpay_order_id=order_id,
+            amount=amount
+        )
 
+        logger.info(f"Frame count updated for client {client.id}. Added {count} frames.")
 
+    except Exception as e:
+        logger.exception("Error updating frame count: %s", str(e))
 
+def camera_feed(request, hasheduserid):
+    """
+    Retrieves and displays the associated web video for a given user.
+    """
+    try:
+        userid = decode_primary_key(hasheduserid)
+        frameuser = get_object_or_404(FrameUserInfo, id=userid)
 
+        # Get associated media
+        media = MediaForWebExperience.objects.filter(user=frameuser).first()
 
+        if media and media.web_video:
+            return render(request, "index2.html", {"media": media})
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# from django.shortcuts import render
-
-# # Create your views here.
-# from django.http import HttpResponse
-
-
-# from django.shortcuts import render
-
-# def video_page(request):
-#     return render(request, 'video_page.html')
-
-# from django.shortcuts import render
-# from django.http import StreamingHttpResponse
-# import cv2
-# import numpy as np
-
-
-# def process_frame(frame):
-#     """Apply modifications to the frame (e.g., add overlay or effects)."""
-#     # Example: Convert to grayscale (replace with actual processing logic)
-#     processed_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-#     processed_frame = cv2.cvtColor(processed_frame, cv2.COLOR_GRAY2BGR)
-#     return processed_frame
-
-
-# def video_feed():
-#     """Stream processed video frames to the browser."""
-#     cap = cv2.VideoCapture(0)  # 0 to use the system's webcam
-#     if not cap.isOpened():
-#         raise RuntimeError("Error: Unable to access webcam!")
-
-#     try:
-#         while True:
-#             ret, frame = cap.read()
-#             if not ret:
-#                 break
-
-#             # Process the frame
-#             processed_frame = process_frame(frame)
-
-#             # Encode frame as JPEG
-#             _, buffer = cv2.imencode('.jpg', processed_frame)
-#             frame = buffer.tobytes()
-
-#             # Stream frame
-#             yield (b'--frame\r\n'
-#                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-
-#     finally:
-#         cap.release()
-#         cv2.destroyAllWindows()
-
-
-# def camera_feed(request):
-#     """Django view to return the video feed."""
-#     return StreamingHttpResponse(video_feed(), content_type='multipart/x-mixed-replace; boundary=frame')
-
-
-# def camera_page(request):
-#     """Render the camera feed page."""
-#     return render(request, 'camera_page.html')
-
-
-
-from django.shortcuts import render
-
-def camera_feed(request, userid):
-    # Frameuser = get_object_or_404(FrameUserInfo, consumer_unique_id=userid)
-    frameuser = FrameUserInfo.objects.filter(id=userid).first()
-    # Get the associated web video
-    media = MediaForWebExperience.objects.filter(user=frameuser).first()
-
-    print(media)
-
-    if media and media.web_video:
-        return render(request, 
-                  "index2.html",
-                  context={"media":media})
-    else:
+        logger.warning(f"No video found for user {userid}")
         return JsonResponse({"error": "No video found"}, status=404)
-    
 
-def landing_page(request,):
-    return render(request, 
-                  "index3.html")
+    except Exception as e:
+        logger.exception("Error in camera_feed: %s", str(e))
+        return JsonResponse({"error": "An unexpected error occurred."}, status=500)
+
+def landing_page(request):
+    """
+    Renders the landing page.
+    """
+    return render(request, "index3.html")
 
 def contactus(request):
-    if request.method == "POST":
-        obj=ContactForm()
-        obj.name = request.POST.get('name')
-        obj.business_name = request.POST.get('business')
-        obj.email = request.POST.get('email')
-        obj.contact = request.POST.get('contact')
-        obj.message = request.POST.get('message')
-        obj.save()
-    return render(request, 
-                  "Contactus.html")
+    """
+    Handles contact form submission.
+    """
+    try:
+        if request.method == "POST":
+            contact = ContactForm(
+                name=request.POST.get('name'),
+                business_name=request.POST.get('business'),
+                email=request.POST.get('email'),
+                contact=request.POST.get('contact'),
+                message=request.POST.get('message')
+            )
+            contact.save()
+            logger.info(f"New contact form submitted by {contact.email}")
 
-def aboutus(request,):
-    return render(request, 
-                  "aboutus.html")
+            return JsonResponse({"message": "Thank you for contacting us!"}, status=200)
 
-def tnc(request,):
-    return render(request, 
-                  "tnc.html")
+    except Exception as e:
+        logger.exception("Error in contactus: %s", str(e))
+        return JsonResponse({"error": "Something went wrong. Please try again later."}, status=500)
 
-def privacy_policy(request,):
-    return render(request, 
-                  "privacy_policy.html")
+    return render(request, "Contactus.html")
 
+def aboutus(request):
+    """
+    Renders the About Us page.
+    """
+    return render(request, "aboutus.html")
 
+def tnc(request):
+    """
+    Renders the Terms and Conditions page.
+    """
+    return render(request, "tnc.html")
 
-
-
-
+def privacy_policy(request):
+    """
+    Renders the Privacy Policy page.
+    """
+    return render(request, "privacy_policy.html")
