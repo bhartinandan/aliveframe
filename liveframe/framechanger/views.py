@@ -47,7 +47,7 @@ def generate_qr(request, frameuserid):
         userid_hash = encode_primary_key(frameuserid)
 
         # Construct the media URL
-        media_url = request.build_absolute_uri(f'/userex/{userid_hash}')
+        media_url = request.build_absolute_uri(f'/qr/userex/{userid_hash}')
         logger.info(f"Generating QR Code for: {media_url}")
 
         # Create the QR code
@@ -646,6 +646,7 @@ def camera_feed(request, hasheduserid):
     """
     Retrieves and displays the associated web video for a given user.
     """
+    print(hasheduserid)
     try:
         userid = decode_primary_key(hasheduserid)
         frameuser = get_object_or_404(FrameUserInfo, id=userid)
@@ -654,6 +655,8 @@ def camera_feed(request, hasheduserid):
         media = MediaForWebExperience.objects.filter(user=frameuser).first()
 
         if media and media.web_video:
+            print(media)
+            print(media.web_video)
             return render(request, "index2.html", {"media": media})
 
         logger.warning(f"No video found for user {userid}")
