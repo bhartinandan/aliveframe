@@ -104,7 +104,7 @@ def user_dashboard(request):
             "total_frames": total_frames
         }
 
-        return render(request, "user_dashboard.html", context)
+        return render(request, "landing_page.html", context)
 
     except Exception as e:
         logger.exception("Error occurred while loading user dashboard")
