@@ -611,6 +611,7 @@ def paymenthandler(request):
 
     return HttpResponseBadRequest("Invalid request method")
 
+@login_required
 def update_frame_count(user, count, payment_id, order_id, amount):
     """
     Updates the frame count and logs the payment in the database.

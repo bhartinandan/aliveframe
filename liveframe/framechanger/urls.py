@@ -40,7 +40,7 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
-    path('qr/userex/<str:hasheduserid>', views.camera_feed, name='camera_feed'),
+    path('qr/userex/<hasheduserid>', views.camera_feed, name='camera_feed'),
     path('qr/<int:frameuserid>', views.generate_qr, name='qr'),
     path('', views.landing_page, name='landing_page'),
     path('contactus', views.contactus, name='contactus'),
@@ -54,7 +54,7 @@ urlpatterns = [
     path('signin', views.client_signin, name='signin'),
     path('dashboard', views.user_dashboard, name='dashboard'),
     path('customer-data/<int:id>', views.customer_data, name='customer-data'),
-    path('customer-data/<int:id>', views.user_dashboard_search, name='customer-data'),
+    path('customer-data-search/<int:id>', views.user_dashboard_search, name='customer-data-search'),
     path('add-frame/<int:id>', views.add_frame, name='add-frame'),
     path('paymenthandler/', views.paymenthandler, name='paymenthandler'),
     path("payment",views.payment, name='payment'),
