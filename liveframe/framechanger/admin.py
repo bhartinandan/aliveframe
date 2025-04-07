@@ -6,7 +6,7 @@ from .models import *
 admin.site.register(ClientInfo)
 admin.site.register(FrameUserInfo)
 admin.site.register(MediaForWebExperience)
-admin.site.register(ContactForm)
+admin.site.register(ContactUs)
 admin.site.register(FrameCount)
 admin.site.register(FramePayment)
 

@@ -59,7 +59,7 @@ class FramePayment(models.Model):
     def __str__(self):
         return str(self.id)
 
-class ContactForm(models.Model):
+class ContactUs(models.Model):
     name = models.CharField(max_length=255)
     business_name = models.CharField(max_length=255)
     contact = models.CharField(max_length=15)

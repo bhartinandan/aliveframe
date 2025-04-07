@@ -43,7 +43,7 @@ urlpatterns = [
     path('qr/userex/<hasheduserid>', views.camera_feed, name='camera_feed'),
     path('qr/<int:frameuserid>', views.generate_qr, name='qr'),
     path('', views.landing_page, name='landing_page'),
-    path('contactus', views.contactus, name='contactus'),
+    path('contact', views.contact_us, name='contactus'),
     # path('aboutus', views.aboutus, name='aboutus'),
     path('tnc', views.tnc, name='tnc'),
     path('privacy-policy', views.privacy_policy, name='privacy-policy'),
@@ -58,5 +58,5 @@ urlpatterns = [
     path('add-frame/<int:id>', views.add_frame, name='add-frame'),
     path('paymenthandler/', views.paymenthandler, name='paymenthandler'),
     path("payment",views.payment, name='payment'),
-    path("logout/", user_logout, name="logout"),
+    path("logout/", user_logout, name="logout")
 ]

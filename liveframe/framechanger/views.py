@@ -172,7 +172,7 @@ def customer_data(request, id):
                 if not frame_media:
                     logger.warning(f"No MediaForWebExperience found for FrameUser ID: {id}")
                     return JsonResponse({"error": "Media not found for this frame user."}, status=404)
-
+                os.remove(frame_media.web_video.path)
                 frame_media.web_video = uploaded_video
                 frame_media.save()
                 logger.info(f"Video uploaded successfully for FrameUser ID: {id}")
@@ -658,7 +658,7 @@ def camera_feed(request, hasheduserid):
         if media and media.web_video:
             print(media)
             print(media.web_video)
-            return render(request, "index2.html", {"media": media})
+            return render(request, "camera_display.html", {"media": media})
 
         logger.warning(f"No video found for user {userid}")
         return JsonResponse({"error": "No video found"}, status=404)
@@ -673,27 +673,27 @@ def landing_page(request):
     """
     return render(request, "landing_page.html")
 
-def contactus(request):
+def contact_us(request):
     """
-    Handles contact form submission.
+    Handles contact form submission directly using the model.
     """
-    try:
-        if request.method == "POST":
-            contact = ContactForm(
-                name=request.POST.get('name'),
-                business_name=request.POST.get('business'),
-                email=request.POST.get('email'),
-                contact=request.POST.get('contact'),
-                message=request.POST.get('message')
-            )
-            contact.save()
-            logger.info(f"New contact form submitted by {contact.email}")
+    # try:
+    obj=ContactUs()
+    if request.method == "POST":
+        obj.name = request.POST.get('name')
+        obj.business_name = request.POST.get('business')
+        obj.email = request.POST.get('email')
+        obj.contact = request.POST.get('contact')
+        obj.message = request.POST.get('message')
+        
+        obj.save()
 
-            return JsonResponse({"message": "Thank you for contacting us!"}, status=200)
+        logger.info(f"New contact form")
+        return JsonResponse({"message": "Thank you for contacting us!"}, status=200)
 
-    except Exception as e:
-        logger.exception("Error in contactus: %s", str(e))
-        return JsonResponse({"error": "Something went wrong. Please try again later."}, status=500)
+    # except Exception as e:
+    #     logger.exception("Error in contact_us view: %s", str(e))
+    #     return JsonResponse({"error": "Something went wrong. Please try again later."}, status=500)
 
     return render(request, "Contactus.html")
 
