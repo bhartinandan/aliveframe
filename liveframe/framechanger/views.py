@@ -104,7 +104,7 @@ def user_dashboard(request):
             "total_frames": total_frames
         }
 
-        return render(request, "landing_page.html", context)
+        return render(request, "user_dashboard.html", context)
 
     except Exception as e:
         logger.exception("Error occurred while loading user dashboard")
@@ -671,7 +671,7 @@ def landing_page(request):
     """
     Renders the landing page.
     """
-    return render(request, "index3.html")
+    return render(request, "landing_page.html")
 
 def contactus(request):
     """
