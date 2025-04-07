@@ -31,7 +31,7 @@ razorpay_client = razorpay.Client(
 # Configure logging
 logger = logging.getLogger(__name__)
 
-@login_required
+@login_required(login_url='/signin')
 def generate_qr(request, frameuserid):
     """
     Generates a QR code for a given frame user ID.
@@ -68,7 +68,7 @@ def generate_qr(request, frameuserid):
         logger.exception("Error generating QR code")
         return JsonResponse({"error": "Internal server error"}, status=500)
 
-@login_required
+@login_required(login_url='/signin')
 def user_dashboard(request):
     """
     Renders the user dashboard with client information, frame user details, 
@@ -110,7 +110,7 @@ def user_dashboard(request):
         logger.exception("Error occurred while loading user dashboard")
         return JsonResponse({"error": "An internal server error occurred."}, status=500)
 
-@login_required
+@login_required(login_url='/signin')
 def user_dashboard_search(request, id):
     """
     Searches and displays the user dashboard with client and frame details based on a given ID.
@@ -151,7 +151,7 @@ def user_dashboard_search(request, id):
         logger.exception("Error occurred while loading user dashboard search")
         return JsonResponse({"error": "An internal server error occurred."}, status=500)
 
-@login_required
+@login_required(login_url='/signin')
 def customer_data(request, id):
     """
     Handles customer data retrieval and media upload for a specific frame user.
@@ -320,7 +320,7 @@ def client_signup_password(request):
         logger.exception("Unexpected error in client_signup_password")
         return render(request, "client_error.html", {"error_message": "An error occurred. Please try again later."})
 
-@login_required
+@login_required(login_url='/signin')
 def client_form(request):
     """
     Handles client information submission.
@@ -460,7 +460,7 @@ def user_logout(request):
         logger.exception("Error during logout: %s", str(e))
         return redirect("/error")  # Redirect to an error page if an issue occurs
     
-@login_required
+@login_required(login_url='/signin')
 def add_frame(request, id):
     """
     Handles adding a new frame user along with media for web experience.
@@ -521,7 +521,7 @@ def add_frame(request, id):
 
     return render(request, "consumer_detail_form.html")
 
-@login_required
+@login_required(login_url='/signin')
 def payment(request):
     """
     Handles frame purchase and initiates Razorpay payment order.
@@ -611,7 +611,7 @@ def paymenthandler(request):
 
     return HttpResponseBadRequest("Invalid request method")
 
-@login_required
+@login_required(login_url='/signin')
 def update_frame_count(user, count, payment_id, order_id, amount):
     """
     Updates the frame count and logs the payment in the database.
