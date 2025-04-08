@@ -58,5 +58,5 @@ urlpatterns = [
     path('add-frame/<int:id>', views.add_frame, name='add-frame'),
     path('paymenthandler/', views.paymenthandler, name='paymenthandler'),
     path("payment",views.payment, name='payment'),
-    path("logout/", user_logout, name="logout")
+    path("logout/", views.user_logout, name="logout")
 ]

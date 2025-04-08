@@ -454,7 +454,7 @@ def user_logout(request):
         else:
             logger.warning("Logout attempted by an unauthenticated user.")
 
-        return redirect("/login")  # Redirect to login page after logout
+        return redirect("/")  # Redirect to login page after logout
 
     except Exception as e:
         logger.exception("Error during logout: %s", str(e))
