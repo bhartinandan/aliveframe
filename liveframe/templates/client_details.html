@@ -55,6 +55,9 @@
                             
                         </div>
                         <form method="post">{% csrf_token %}
+                            {% if error %}
+                                <p style="color: red; font-weight: bold;">{{ error }}</p>
+                            {% endif %}
                             <div class="form-floating mb-3">
                                 <input type="text" class="form-control" id="name" name="name" placeholder="jhondoe">
                                 <label for="floatingText">Name</label>

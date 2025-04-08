@@ -53,24 +53,18 @@
                             <a onclick="window.location.href ='/'" class="">
                                 <h4 class="text-info"><i class="fa fa-user-edit me-2"></i>AliveFrame</h4>
                             </a>
-                            <h4>Sign Up</h4>
+                            <h4></h4>
                         </div>
                         <form method="post">{% csrf_token %}
-                            {% if error %}
-                                <p style="color: red; font-weight: bold;">{{ error }}</p>
-                            {% endif %}
-                            <div class="form-floating mb-4">
-                                <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
-                                <label for="password">Password</label>
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="floatingText" id="mobile" name="mobile" placeholder="mobile" required>
+                                <label for="floatingText">Mobile no.</label>
                             </div>
-                            <div class="form-floating mb-4">
-                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Re-enter Password" required>
-                                <label for="confirmPassword">Re-enter Password</label>
-                            </div>
-                            <div id="passwordError" class="text-danger"></div>
-                            <button type="submit" class="btn btn-info py-3 w-100 mb-4">Sign Up</button>
+                            <div class="text-danger">{{message}}</div>
+                            
+                            <button type="submit" class="btn btn-info py-3 w-100 mb-4">Get Otp</button>
                         </form>
-                        
+                        <p class="text-center mb-0">Already have an Account? <a class="text-info" onclick="window.location.href ='/signin'">sign in</a></p>
                     </div>
                 </div>
             </div>
@@ -79,19 +73,6 @@
     </div>
 
     <!-- JavaScript Libraries -->
-    <script>
-        document.getElementById("confirmPassword").addEventListener("input", function () {
-            let password = document.getElementById("password").value;
-            let confirmPassword = this.value;
-            let errorDiv = document.getElementById("passwordError");
-    
-            if (password !== confirmPassword) {
-                errorDiv.textContent = "Passwords do not match!";
-            } else {
-                errorDiv.textContent = "";
-            }
-        });
-    </script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'lib/chart/chart.min.js' %}"></script>

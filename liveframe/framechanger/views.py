@@ -319,6 +319,136 @@ def client_signup_password(request):
     except Exception as e:
         logger.exception("Unexpected error in client_signup_password")
         return render(request, "client_error.html", {"error_message": "An error occurred. Please try again later."})
+    
+def client_forget_pswd(request):
+    """
+    Handles client signup via phone number and OTP verification.
+    """
+    try:
+        message = ""
+
+        if request.method == "POST":
+            user_id = request.POST.get("mobile")
+
+            if not user_id:
+                return JsonResponse({"error": "Mobile number is required"}, status=400)
+
+            # Check if user already exists
+            if not User.objects.filter(username=user_id).exists():
+                message = "Mobile number not registered!"
+                return render(request, "client_signup.html", {"message": message})
+
+            # Generate OTP token
+            data = token()
+            request.session["user_id"] = user_id
+            request.session["token"] = data["token"]
+
+            # Send OTP
+            response = send_phone_otp(user_id, data["token"])
+            response_data = response.get("data", {})
+
+            if response.get("responseCode") in [200, 506]:
+                request.session["verificationId"] = response_data.get("verificationId")
+                logger.info(f"OTP sent successfully to {user_id}")
+                return redirect("/otp")
+
+            message = "Retry sending OTP"
+            logger.warning(f"Failed OTP attempt for {user_id}: {response}")
+
+        return render(request, "client_signup_forget.html", {"message": message})
+
+    except Exception as e:
+        logger.exception("Error occurred during client signup")
+        return render(request, "client_error.html", {"error_message": "An unexpected error occurred. Please try again later."})
+
+def otp_forget(request):
+    """
+    Handles OTP verification for user authentication.
+    """
+    try:
+        message = ""
+
+        if request.method == "POST":
+            otp = request.POST.get("otp")
+
+            # Validate OTP input
+            if not otp:
+                return JsonResponse({"error": "OTP is required"}, status=400)
+
+            # Retrieve session data
+            user_id = request.session.get("user_id")
+            token = request.session.get("token")
+            verification_id = request.session.get("verificationId")
+
+            if not user_id or not token or not verification_id:
+                logger.error("Session data missing for OTP verification")
+                return render(request, "client_error.html", {"error_message": "Session expired. Please restart the process."})
+
+            logger.info(f"Verifying OTP for user: {user_id}")
+
+            # Verify OTP
+            response = verify_otp(user_id, otp, verification_id, token)
+
+            if response.get("responseCode") == 200:
+                response_data = response.get("data", {})
+                request.session["verificationStatus"] = response_data.get("verificationStatus")
+
+                logger.info(f"OTP verified successfully for {user_id}")
+                return redirect("/password")
+
+            message = "Wrong OTP. Please enter the correct OTP."
+            logger.warning(f"Incorrect OTP entered for {user_id}")
+
+        return render(request, "client_forget_otp.html", {"message": message})
+
+    except Exception as e:
+        logger.exception("Error occurred during OTP verification")
+        return render(request, "client_error.html", {"error_message": "An unexpected error occurred. Please try again later."})
+    
+
+def client_signup_password_forget(request):
+    """
+    Handles client password setup after OTP verification.
+    """
+    try:
+        if request.method == "POST":
+            user_id = request.session.get("user_id")
+            verification_status = request.session.get("verificationStatus")
+            password = request.POST.get("password")
+
+            # Validate session data
+            if not user_id or verification_status != "VERIFICATION_COMPLETED":
+                logger.warning("Session expired or invalid verification status for user: %s", user_id)
+                return redirect("/forget-password")
+
+            # Validate password
+            if not password or len(password) < 6:
+                logger.warning("Weak password attempt for user: %s", user_id)
+                return render(request, "client_password.html", {"error": "Password must be at least 6 characters long."})
+
+            # Check if user not already exists
+            if not User.objects.filter(username=user_id).exists():
+                logger.warning("User doesn't exists: %s", user_id)
+                return render(request, "client_forget_password.html", {"error": "User not exists. Please signup instead."})
+
+            # Create and authenticate user
+            user = User.objects.create_user(username=user_id, password=password)
+            user.save()
+
+            authenticated_user = authenticate(username=user_id, password=password)
+            if authenticated_user is not None:
+                login(request, authenticated_user)
+                logger.info("User signed up and logged in: %s", user_id)
+                return redirect("/dashboard")
+
+            logger.error("User authentication failed after signup: %s", user_id)
+            return render(request, "client_forget_password.html", {"error": "Account creation failed. Please try again."})
+
+        return render(request, "client_forget_password.html")
+
+    except Exception as e:
+        logger.exception("Unexpected error in client_signup_password")
+        return render(request, "client_error.html", {"error_message": "An error occurred. Please try again later."})
 
 @login_required(login_url='/signin')
 def client_form(request):
@@ -326,6 +456,7 @@ def client_form(request):
     Handles client information submission.
     """
     user = request.user
+    print(user)
 
     if request.method == "POST":
         try:
@@ -339,9 +470,11 @@ def client_form(request):
             contact = request.POST.get("contact", "").strip()
             state = request.POST.get("state", "").strip()
             country = request.POST.get("country", "").strip()
+            print(name, business_name, email, address, pin_code, city, contact, state, country)
 
             # Input Validation
             if not name or not business_name or not email or not contact:
+                print("pass1")
                 return render(request, "client_details.html", {
                     "error": "Name, Business Name, Email, and Contact are required fields."
                 })
@@ -349,6 +482,7 @@ def client_form(request):
             # Validate email format
             try:
                 validate_email(email)
+                print("pass2")
             except ValidationError:
                 return render(request, "client_details.html", {
                     "error": "Invalid email format. Please enter a valid email address."
@@ -356,36 +490,42 @@ def client_form(request):
 
             # Validate pin code (assuming Indian 6-digit format)
             if pin_code and (not pin_code.isdigit() or len(pin_code) != 6):
+                print("pass3")
                 return render(request, "client_details.html", {
                     "error": "Invalid Pin Code. It should be a 6-digit number."
                 })
 
             # Validate contact number (assuming 10-digit Indian format)
             if contact and (not contact.isdigit() or len(contact) != 10):
+                print("pass4")
                 return render(request, "client_details.html", {
                     "error": "Invalid Contact Number. It should be a 10-digit number."
                 })
 
             # Check if the user already has a client profile
             if ClientInfo.objects.filter(user=user).exists():
+                print("pass5")
                 return render(request, "client_details.html", {
                     "error": "Client profile already exists. You cannot create multiple profiles."
                 })
 
             # Save to the database
-            client_info = ClientInfo(
-                user=user,
-                name=name,
-                business_name=business_name,
-                email=email,
-                address=address,
-                pin_code=pin_code,
-                city=city,
-                contact=contact,
-                state=state,
-                country=country,
-            )
+            client_info=ClientInfo()
+            
+            client_info.user=user
+            client_info.name=name
+            client_info.business_name=business_name
+            client_info.email=email
+            client_info.address=address
+            client_info.pin_code=pin_code
+            client_info.city=city
+            client_info.contact=contact
+            client_info.state=state
+            client_info.country=country
+            
             client_info.save()
+
+            print(user.username)
             
             logger.info("Client information saved successfully for user: %s", user.username)
             return redirect("/dashboard")
@@ -441,6 +581,8 @@ def client_signin(request):
             })
 
     return render(request, "client_signin.html")
+
+
     
 def user_logout(request):
     """
@@ -470,6 +612,10 @@ def add_frame(request, id):
     try:
         # Get the client or return 404 if not found
         cli_id = get_object_or_404(ClientInfo, id=id)
+        framecount = FrameCount.objects.filter(client_id=cli_id).first()
+        if not framecount:
+            return redirect("/payment")
+
 
         if request.method == "POST":
             name = request.POST.get('name')
