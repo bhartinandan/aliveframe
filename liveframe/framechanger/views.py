@@ -431,8 +431,11 @@ def client_signup_password_forget(request):
                 logger.warning("User doesn't exists: %s", user_id)
                 return render(request, "client_forget_password.html", {"error": "User not exists. Please signup instead."})
 
-            # Create and authenticate user
-            user = User.objects.create_user(username=user_id, password=password)
+           # Check if user exists
+            user, created = User.objects.get_or_create(username=user_id)
+
+            # Update password (whether new or existing user)
+            user.set_password(password)
             user.save()
 
             authenticated_user = authenticate(username=user_id, password=password)

@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="shortcut icon" type="image/png" href="{% static 'aflogo.png' %}">
   <title>AliveFrame - Bring Memories to Life</title>
   <style>
     * {
@@ -185,7 +186,7 @@
   <section id="video-section">
     <h2>Watch a Sample Reel</h2>
     <div class="reel-video">
-      <video src="your-video.mp4" autoplay muted loop playsinline></video>
+      <video src="{% static 'landing_video.mp4' %}" autoplay muted loop playsinline></video>
     </div>
   </section>
 
