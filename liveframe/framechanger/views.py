@@ -863,3 +863,9 @@ def privacy_policy(request):
     Renders the Privacy Policy page.
     """
     return render(request, "privacy_policy.html")
+
+def cancellation_policy(request):
+    """
+    Renders the Privacy Policy page.
+    """
+    return render(request, "cancellation_policy.html")

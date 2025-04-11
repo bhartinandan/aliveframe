@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AliveFrame - Cancellation Policy</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #001f3f, #000c1a);
+      color: white;
+      text-align: center;
+      overflow-x: hidden;
+    }
+
+    .container {
+      padding: 20px;
+    }
+
+    .logo {
+      font-size: 36px;
+      font-weight: bold;
+      margin: 20px 0;
+      opacity: 0;
+      animation: fadeInScale 1.5s ease-in-out forwards;
+      cursor: pointer;
+    }
+
+    .policy-container {
+      max-width: 700px;
+      margin: 30px auto;
+      background: #002244;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      animation: fadeIn 1.5s ease-in-out forwards 1s;
+      text-align: left;
+    }
+
+    .policy-container h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .policy-container ul {
+      padding-left: 20px;
+      line-height: 1.7;
+    }
+
+    .policy-container li {
+      margin-bottom: 10px;
+    }
+
+    .contact-info {
+      margin-top: 30px;
+      background: #001d3a;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .contact-info p {
+      margin: 8px 0;
+      font-size: 15px;
+    }
+
+    .footer {
+      background: #000c1a;
+      padding: 20px;
+      margin-top: 40px;
+      opacity: 0;
+      animation: fadeIn 2s ease-in-out forwards 1.5s;
+    }
+
+    .footer a {
+      color: white;
+      text-decoration: none;
+      margin: 0 10px;
+    }
+
+    /* Animations */
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo" onclick="window.location.href ='/'">AliveFrame</div>
+
+    <div class="policy-container">
+      <h2>Cancellation & Refund Policy</h2>
+      <ul>
+        <li>Refunds can only be made for <strong>unused frames</strong> that remain available in your account.</li>
+        <li>Once a frame is accessed, or activated, it is considered <strong>used and non-refundable</strong>.</li>
+        <li>Refund requests must be submitted within <strong>5 days of the payment date</strong>.</li>
+        <li>No refund will be issued after 5 days, regardless of frame usage status.</li>
+        <li>Rush orders and custom packages are <strong>non-refundable</strong> once processing begins.</li>
+        <li>Refunds (if applicable) will be processed to the original payment method within 7 business days.</li>
+      </ul>
+
+      <div class="contact-info">
+        <h3 style="text-align:center;">📬 Need Help?</h3>
+        <p><strong>Email:</strong> <a href="mailto:contactaliveframe@gmail.com" style="color:#66bfff;">contactaliveframe@gmail.com</a></p>
+        <p><strong>Support Hours:</strong> Mon–Sat, 10:00 AM – 6:00 PM IST</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>
+      <a onclick="window.location.href ='/privacy-policy'">Privacy Policy</a> |
+      <a onclick="window.location.href ='/tnc'">Terms & Conditions</a>
+    </p>
+  </div>
+</body>
+</html>
