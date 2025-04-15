@@ -683,14 +683,14 @@ def payment(request):
                 return JsonResponse({"error": "Invalid frame count"}, status=400)
 
             request.session['framecount'] = frame_count
-            amount = (frame_count * 10) * 100  # Convert to paisa
+            amount = (frame_count * 99) * 100  # Convert to paisa
             request.session['fnl_amount'] = amount
 
             # Create Razorpay Order
             razorpay_order = razorpay_client.order.create({
                 "amount": amount,
                 "currency": "INR",
-                "payment_capture": '1'  # Auto-capture enabled
+                "payment_capture": '0'  # Auto-capture enabled
             })
 
             logger.info(f"Created Razorpay order: {razorpay_order['id']} for {amount} INR")
@@ -756,11 +756,10 @@ def paymenthandler(request):
 
         except Exception as e:
             logger.exception("Unexpected error in payment handler: %s", str(e))
-            return render(request, 'c_paymentfailure.html')
+            return render(request, 'c_paymentfail.html')
 
     return HttpResponseBadRequest("Invalid request method")
 
-@login_required(login_url='/signin')
 def update_frame_count(user, count, payment_id, order_id, amount):
     """
     Updates the frame count and logs the payment in the database.

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import datetime 
+from django.utils import timezone
 #web user experience
     
 class ClientInfo(models.Model):
@@ -54,7 +55,7 @@ class FramePayment(models.Model):
     payment_id = models.CharField(max_length=30)
     razorpay_order_id = models.CharField(max_length=30)
     amount = models.IntegerField(default=0)
-    paid_on = models.DateTimeField(default=datetime.now, blank=True)
+    paid_on = models.DateTimeField(default=timezone.now, blank=True)
 
     def __str__(self):
         return str(self.id)
