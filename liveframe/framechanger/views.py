@@ -459,8 +459,6 @@ def client_form(request):
     Handles client information submission.
     """
     user = request.user
-    print(user)
-
     if request.method == "POST":
         try:
             # Extract form data
@@ -473,11 +471,11 @@ def client_form(request):
             contact = request.POST.get("contact", "").strip()
             state = request.POST.get("state", "").strip()
             country = request.POST.get("country", "").strip()
-            print(name, business_name, email, address, pin_code, city, contact, state, country)
+           
 
             # Input Validation
             if not name or not business_name or not email or not contact:
-                print("pass1")
+              
                 return render(request, "client_details.html", {
                     "error": "Name, Business Name, Email, and Contact are required fields."
                 })
@@ -485,7 +483,7 @@ def client_form(request):
             # Validate email format
             try:
                 validate_email(email)
-                print("pass2")
+                
             except ValidationError:
                 return render(request, "client_details.html", {
                     "error": "Invalid email format. Please enter a valid email address."
@@ -493,21 +491,21 @@ def client_form(request):
 
             # Validate pin code (assuming Indian 6-digit format)
             if pin_code and (not pin_code.isdigit() or len(pin_code) != 6):
-                print("pass3")
+               
                 return render(request, "client_details.html", {
                     "error": "Invalid Pin Code. It should be a 6-digit number."
                 })
 
             # Validate contact number (assuming 10-digit Indian format)
             if contact and (not contact.isdigit() or len(contact) != 10):
-                print("pass4")
+              
                 return render(request, "client_details.html", {
                     "error": "Invalid Contact Number. It should be a 10-digit number."
                 })
 
             # Check if the user already has a client profile
             if ClientInfo.objects.filter(user=user).exists():
-                print("pass5")
+              
                 return render(request, "client_details.html", {
                     "error": "Client profile already exists. You cannot create multiple profiles."
                 })
@@ -528,7 +526,7 @@ def client_form(request):
             
             client_info.save()
 
-            print(user.username)
+          
             
             logger.info("Client information saved successfully for user: %s", user.username)
             return redirect("/dashboard")
@@ -795,7 +793,7 @@ def camera_feed(request, hasheduserid):
     """
     Retrieves and displays the associated web video for a given user.
     """
-    print(hasheduserid)
+   
     try:
         userid = decode_primary_key(hasheduserid)
         frameuser = get_object_or_404(FrameUserInfo, id=userid)
@@ -804,8 +802,6 @@ def camera_feed(request, hasheduserid):
         media = MediaForWebExperience.objects.filter(user=frameuser).first()
 
         if media and media.web_video:
-            print(media)
-            print(media.web_video)
             return render(request, "camera_display.html", {"media": media})
 
         logger.warning(f"No video found for user {userid}")
