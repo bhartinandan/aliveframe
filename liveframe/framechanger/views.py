@@ -683,7 +683,7 @@ def payment(request):
                 return JsonResponse({"error": "Invalid frame count"}, status=400)
 
             request.session['framecount'] = frame_count
-            amount = (frame_count * 99) * 100  # Convert to paisa
+            amount = (frame_count * 10) * 100  # Convert to paisa
             request.session['fnl_amount'] = amount
 
             # Create Razorpay Order
