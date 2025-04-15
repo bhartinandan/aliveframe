@@ -91,8 +91,29 @@
                         order_id: data.order_id,
                         callback_url: data.callback_url,
                         handler: function (response) {
-                            window.location.href = `/paymenthandler/?payment_id=${response.razorpay_payment_id}&order_id=${data.order_id}&signature=${response.razorpay_signature}`;
-                        }
+                        const form = document.createElement("form");
+                        form.method = "POST";
+                        form.action = "/paymenthandler/";
+
+                        const addInput = (name, value) => {
+                            const input = document.createElement("input");
+                            input.type = "hidden";
+                            input.name = name;
+                            input.value = value;
+                            form.appendChild(input);
+                        };
+
+                        addInput("payment_id", response.razorpay_payment_id);
+                        addInput("order_id", options.order_id);
+                        addInput("signature", response.razorpay_signature);
+
+                        // Add CSRF token if needed
+                        addInput("csrfmiddlewaretoken", "{{ csrf_token }}");
+
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+
                     };
 
                     var rzp1 = new Razorpay(options);
