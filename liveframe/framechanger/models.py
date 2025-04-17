@@ -18,7 +18,7 @@ class ClientInfo(models.Model):
     country = models.CharField(max_length=20)
 
     def __str__(self):
-        return self.business_name
+        return str(self.user.username) + self.business_name
     
 class FrameUserInfo(models.Model):
     date = models.DateTimeField(default=datetime.now, blank=True)
@@ -33,21 +33,21 @@ class FrameUserInfo(models.Model):
     client_id = models.ForeignKey(ClientInfo, on_delete=models.CASCADE, related_name='client')
 
     def __str__(self):
-        return str(self.id)
+        return str(self.client_id.user.username) + str(self.id)
     
 class MediaForWebExperience(models.Model):
     user=models.ForeignKey(FrameUserInfo, on_delete=models.CASCADE, related_name='frameuser')
     web_video = models.FileField(upload_to='web_videos/')
 
     def __str__(self):
-        return str(self.id)
+        return str(self.user.client_id.user.username) + str(self.user.name) + str(self.id)
     
 class FrameCount(models.Model):
     client_id = models.ForeignKey(ClientInfo, on_delete=models.CASCADE, related_name='clientid')
     frame_count = models.IntegerField()
 
     def __str__(self):
-        return str(self.id)
+        return str(self.client_id.user.username) + str(self.id)
     
 class FramePayment(models.Model):
     client_id = models.ForeignKey(ClientInfo, on_delete=models.CASCADE, related_name='clientassid')
@@ -58,7 +58,7 @@ class FramePayment(models.Model):
     paid_on = models.DateTimeField(default=timezone.now, blank=True)
 
     def __str__(self):
-        return str(self.id)
+        return str(self.client_id.user.username) + str(self.id)
 
 class ContactUs(models.Model):
     name = models.CharField(max_length=255)
@@ -68,7 +68,7 @@ class ContactUs(models.Model):
     message = models.CharField(max_length=500)
 
     def __str__(self):
-        return str(self.id)
+        return self.business_name + str(self.id)
 
 
 
