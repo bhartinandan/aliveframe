@@ -18,7 +18,7 @@ class ClientInfo(models.Model):
     country = models.CharField(max_length=20)
 
     def __str__(self):
-        return str(self.user.username) + self.business_name
+        return str(self.user.username) +"-"+ self.business_name
     
 class FrameUserInfo(models.Model):
     date = models.DateTimeField(default=datetime.now, blank=True)
@@ -33,14 +33,14 @@ class FrameUserInfo(models.Model):
     client_id = models.ForeignKey(ClientInfo, on_delete=models.CASCADE, related_name='client')
 
     def __str__(self):
-        return str(self.client_id.user.username) + str(self.id)
+        return str(self.client_id.user.username) + "-" + "name:" + self.name + "-" + str(self.id)
     
 class MediaForWebExperience(models.Model):
     user=models.ForeignKey(FrameUserInfo, on_delete=models.CASCADE, related_name='frameuser')
     web_video = models.FileField(upload_to='web_videos/')
 
     def __str__(self):
-        return str(self.user.client_id.user.username) + str(self.user.name) + str(self.id)
+        return str(self.user.client_id.user.username) + "-" + str(self.user.name) +"-"+ str(self.id)
     
 class FrameCount(models.Model):
     client_id = models.ForeignKey(ClientInfo, on_delete=models.CASCADE, related_name='clientid')
