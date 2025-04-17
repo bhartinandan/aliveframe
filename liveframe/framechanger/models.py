@@ -47,7 +47,7 @@ class FrameCount(models.Model):
     frame_count = models.IntegerField()
 
     def __str__(self):
-        return str(self.client_id.user.username) + str(self.id)
+        return str(self.client_id.user.username) + "+" + str(self.id)
     
 class FramePayment(models.Model):
     client_id = models.ForeignKey(ClientInfo, on_delete=models.CASCADE, related_name='clientassid')
@@ -58,7 +58,7 @@ class FramePayment(models.Model):
     paid_on = models.DateTimeField(default=timezone.now, blank=True)
 
     def __str__(self):
-        return str(self.client_id.user.username) + str(self.id)
+        return str(self.client_id.user.username) + "-" +str(self.id)
 
 class ContactUs(models.Model):
     name = models.CharField(max_length=255)
@@ -68,7 +68,7 @@ class ContactUs(models.Model):
     message = models.CharField(max_length=500)
 
     def __str__(self):
-        return self.business_name + str(self.id)
+        return self.business_name +"-"+ str(self.id)
 
 
 
